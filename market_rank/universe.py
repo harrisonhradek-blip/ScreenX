@@ -24,12 +24,16 @@ def download_us_symbols() -> list[str]:
     """
     nasdaq = _read_directory(NASDAQ_LISTED)
     other = _read_directory(OTHER_LISTED)
+
+
     nasdaq_symbols = nasdaq.loc[
         (nasdaq["Test Issue"] == "N") & (nasdaq["ETF"] == "N"), "Symbol"
     ]
     other_symbols = other.loc[
         (other["Test Issue"] == "N") & (other["ETF"] == "N"), "ACT Symbol"
     ]
+
+    
     symbols = pd.concat([nasdaq_symbols, other_symbols]).dropna().astype(str)
     # Keep standard common-equity ticker forms. Warrants/units/preferreds have
     # non-standard suffixes and make fundamentally comparable ranking unreliable.
