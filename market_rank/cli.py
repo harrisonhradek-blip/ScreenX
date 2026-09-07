@@ -144,23 +144,50 @@ def run(args: argparse.Namespace) -> None:
         time.sleep(30)
 
 
+def watchlist(args: argparse.Namespace) -> None:
+    from .watchlist import add_to_watchlist, delete_from_watchlist, list_watchlist
+
+    if args.add:
+        symbol = args.add.upper()
+        add_to_watchlist(symbol)
+        print(f"Added {symbol} to watchlist.")
+    elif args.delete:
+        symbol = args.delete.upper()
+        delete_from_watchlist(symbol)
+        print(f"Removed {symbol} from watchlist.")
+    elif args.list:
+        rows = list_watchlist()
+        if not rows:
+            print("Watchlist is empty.")
+        else:
+            print(f"{'Ticker':<10} {'Added':<20} {'Watched'}")
+            for _id, title, added, watched in rows:
+                print(f"{title:<10} {added:<20} {'yes' if watched else 'no'}")
+    else:
+        print("No action specified. Use --add TICKER, --delete TICKER, or --list.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="market-rank", description="Rank US equities using sector-relative fundamentals.")
     sub = parser.add_subparsers(required=True)
 
-    
+
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--symbols", help="Comma-separated tickers (useful for a quick or focused run).")
     common.add_argument("--max-symbols", type=int, help="Limit universe size (testing only).")
     common.add_argument("--market-cap", type=int, choices=(100, 1000), help="Rank only the largest 100 or 1,000 US common equities by live market cap.")
     common.add_argument("--refresh-universe", action="store_true", help="Redownload listed symbols.")
 
-
     update_parser = sub.add_parser("update", parents=[common]); update_parser.set_defaults(func=update)
     top_parser = sub.add_parser("top"); top_parser.add_argument("--limit", type=int, default=100); top_parser.set_defaults(func=top)
     show_parser = sub.add_parser("show"); show_parser.add_argument("symbol"); show_parser.set_defaults(func=show)
     run_parser = sub.add_parser("run", parents=[common]); run_parser.add_argument("--at", default=DEFAULT_OPEN_REFRESH_TIME, help="HH:MM ET, default 09:40"); run_parser.set_defaults(func=run)
 
+    watchlist_parser = sub.add_parser("watchlist")
+    watchlist_parser.add_argument("--add", help="Add a ticker to your watchlist.")
+    watchlist_parser.add_argument("--delete", help="Remove a ticker from your watchlist.")
+    watchlist_parser.add_argument("--list", action="store_true", help="Show your current watchlist.")
+    watchlist_parser.set_defaults(func=watchlist)
 
     args = parser.parse_args()
     args.func(args)
