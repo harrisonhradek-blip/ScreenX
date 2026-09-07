@@ -60,6 +60,7 @@ Negative or zero values are shown as unavailable for ratio-based comparisons whe
 
 ## Data notes
 
-- The stock universe comes from Nasdaq Trader’s public `nasdaqlisted.txt` and `otherlisted.txt` directories, filtered to common equity-like listings. ETFs, funds, test issues and non-US symbol formats are excluded.
-- Fundamentals, analyst targets, earnings/revenue growth and daily prices are fetched through `yfinance`/Yahoo Finance. Coverage varies by company; missing metrics do not count against a company’s composite.
+- The stock universe comes from Nasdaq Trader's public `nasdaqlisted.txt` and `otherlisted.txt` directories, filtered to common equity-like listings. ETFs, funds, test issues and non-US symbol formats are excluded.
+- Fundamentals, analyst targets, earnings/revenue growth and daily prices are fetched through `yfinance`/Yahoo Finance. Coverage varies by company; missing metrics do not count against a company's composite.
 - DCF scenarios use a deliberately transparent five-year FCFE-style projection based on reported free cash flow, revenue/EPS growth forecasts, beta-derived discounting and a Monte Carlo terminal-growth/discount-rate simulation. They are estimates, not analyst models.
+- A snapshot always reflects whichever universe was last requested — the full listed universe, a market-cap-limited set, or (with `update --watchlist`) just your watchlist symbols. `market-rank top` and `market-rank watchlist --top` both read from this same snapshot, so scores are only ever comparable within the universe that generated the current snapshot, not across runs made with different `update` options.

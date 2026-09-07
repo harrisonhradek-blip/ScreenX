@@ -73,8 +73,14 @@ def update(args: argparse.Namespace) -> None:
 
 
     ranked = score_records(records)
-    snapshot = {"generated_at": now_iso(), "universe_size": len(symbols), "ranked_count": len(ranked), "universe": f"largest {args.market_cap:,} US equities" if args.market_cap else "all US listed equities", "records": ranked[:100]}
+    if getattr(args, "watchlist", False):
+        universe_label = "your watchlist"
+    elif args.market_cap:
+        universe_label = f"largest {args.market_cap:,} US equities"
+    else:
+        universe_label = "all US listed equities"
 
+    snapshot = {"generated_at": now_iso(), "universe_size": len(symbols), "ranked_count": len(ranked), "universe": universe_label, "records": ranked[:100]}
 
     save(FUNDAMENTALS_FILE, cache)
     save(SNAPSHOT_FILE, snapshot)
