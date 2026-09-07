@@ -17,6 +17,9 @@ pip install -e .
 ```bash
 # Download the listed US equity universe and calculate a current snapshot.
 market-rank update
+market-rank update --watchlist # gets a snapshot for the watchlist
+                               # WARNING: updating using --watchlist will overwrite your current snapshot. 
+
 
 # Faster focused universes: the largest US companies by live market cap.
 market-rank update --market-cap 100
@@ -24,12 +27,18 @@ market-rank update --market-cap 1000
 
 # Print the current top 100 (or a shorter list).
 market-rank top --limit 25
+market-rank top --limit all # Displays everything.
 
 # Inspect one company and its sector-relative scores.
 market-rank show MSFT
 
 # Keep the process alive; refreshes once on each NYSE trading day at 09:40 ET.
 market-rank run
+
+# CRUD Watchlist, can be used
+market-rank watchlist --add symbol
+market-rank watchlist --delete symbol
+market-rank watchlist --list
 ```
 
 `update` is intentionally explicit: the entire US-listed universe is large and the upstream quote/fundamental endpoints can be slow or rate-limited. The CLI caches company fundamentals for 7 days and uses the most recent daily history for price-based data. On a typical connection, the first full run may take a while.

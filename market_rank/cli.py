@@ -22,22 +22,30 @@ def _fresh(entry: dict[str, Any]) -> bool:
 
 def update(args: argparse.Namespace) -> None:
     import yfinance as yf
-    stored_universe = load(UNIVERSE_FILE, {})
-    if args.symbols:
+
+    if getattr(args, "watchlist", False):
+        from .watchlist import list_watchlist
+        rows = list_watchlist()
+        symbols = [title for _id, title, added, watched in rows]
+        if not symbols:
+            raise SystemExit("Watchlist is empty. Add symbols with: market-rank watchlist --add SYMBOL")
+    elif args.symbols:
         symbols = [s.upper() for s in args.symbols.split(",")]
     elif args.market_cap:
         print(f"Getting the {args.market_cap:,} largest US common equities by market capitalization...")
         symbols = largest_us_equities(args.market_cap)
-    elif stored_universe.get("symbols") and not args.refresh_universe:
-        symbols = stored_universe["symbols"]
     else:
-        print("Downloading US-listed symbol directory...")
-        symbols = download_us_symbols()
-        save(UNIVERSE_FILE, {"fetched_at": now_iso(), "symbols": symbols})
-
+        stored_universe = load(UNIVERSE_FILE, {})
+        if stored_universe.get("symbols") and not args.refresh_universe:
+            symbols = stored_universe["symbols"]
+        else:
+            print("Downloading US-listed symbol directory...")
+            symbols = download_us_symbols()
+            save(UNIVERSE_FILE, {"fetched_at": now_iso(), "symbols": symbols})
 
     if args.max_symbols:
         symbols = symbols[:args.max_symbols]
+
     cache: dict[str, dict[str, Any]] = load(FUNDAMENTALS_FILE, {})
     records: list[dict[str, Any]] = []
 
@@ -85,16 +93,15 @@ def top(args: argparse.Namespace) -> None:
     snapshot = load(SNAPSHOT_FILE, {})
     records = snapshot.get("records", [])
 
-
     if not records:
         raise SystemExit("No snapshot yet. Run: python -m market_rank update")
 
-    
+    limit = None if args.limit.lower() == "all" else int(args.limit)
+
     print(f"Snapshot: {snapshot.get('generated_at')} | {snapshot.get('universe', 'US equities')} | ranked {snapshot.get('ranked_count')} of {snapshot.get('universe_size')} symbols")
     print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Score':>7} {'Coverage':>8}")
 
-
-    for rank, row in enumerate(records[:args.limit], start=1):
+    for rank, row in enumerate(records[:limit], start=1):
         print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
 
 
@@ -163,23 +170,49 @@ def watchlist(args: argparse.Namespace) -> None:
             print(f"{'Ticker':<10} {'Added':<20} {'Watched'}")
             for _id, title, added, watched in rows:
                 print(f"{title:<10} {added:<20} {'yes' if watched else 'no'}")
+    elif args.top:
+        rows = list_watchlist()
+        if not rows:
+            print("Watchlist is empty.")
+            return
+
+        snapshot = load(SNAPSHOT_FILE, {})
+        records = {r["symbol"]: r for r in snapshot.get("records", [])}
+
+        if not records:
+            raise SystemExit("No snapshot yet. Run: python -m market_rank update")
+
+        print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Score':>7} {'Coverage':>8}")
+
+        missing = []
+        rank = 0
+        for _id, title, added, watched in rows:
+            row = records.get(title)
+            if row is None:
+                missing.append(title)
+                continue
+            rank += 1
+            print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
+
+        if missing:
+            print(f"\nNot in current snapshot (outside top 100 or not yet ranked): {', '.join(missing)}")
     else:
-        print("No action specified. Use --add TICKER, --delete TICKER, or --list.")
+        print("No action specified. Use --add TICKER, --delete TICKER, --list, or --top.")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="market-rank", description="Rank US equities using sector-relative fundamentals.")
     sub = parser.add_subparsers(required=True)
 
-
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--symbols", help="Comma-separated tickers (useful for a quick or focused run).")
     common.add_argument("--max-symbols", type=int, help="Limit universe size (testing only).")
     common.add_argument("--market-cap", type=int, choices=(100, 1000), help="Rank only the largest 100 or 1,000 US common equities by live market cap.")
     common.add_argument("--refresh-universe", action="store_true", help="Redownload listed symbols.")
+    common.add_argument("--watchlist", action="store_true", help="Update only your watchlist symbols.")
 
     update_parser = sub.add_parser("update", parents=[common]); update_parser.set_defaults(func=update)
-    top_parser = sub.add_parser("top"); top_parser.add_argument("--limit", type=int, default=100); top_parser.set_defaults(func=top)
+    top_parser = sub.add_parser("top"); top_parser.add_argument("--limit", default="100", help="Number of rows to show, or 'all' to show everything."); top_parser.set_defaults(func=top)
     show_parser = sub.add_parser("show"); show_parser.add_argument("symbol"); show_parser.set_defaults(func=show)
     run_parser = sub.add_parser("run", parents=[common]); run_parser.add_argument("--at", default=DEFAULT_OPEN_REFRESH_TIME, help="HH:MM ET, default 09:40"); run_parser.set_defaults(func=run)
 
@@ -187,6 +220,7 @@ def main() -> None:
     watchlist_parser.add_argument("--add", help="Add a ticker to your watchlist.")
     watchlist_parser.add_argument("--delete", help="Remove a ticker from your watchlist.")
     watchlist_parser.add_argument("--list", action="store_true", help="Show your current watchlist.")
+    watchlist_parser.add_argument("--top", action="store_true", help="Show your watchlist's current scores from the latest snapshot.")
     watchlist_parser.set_defaults(func=watchlist)
 
     args = parser.parse_args()
