@@ -58,6 +58,49 @@ For every metric, the raw comparison is against the **median valid value in the 
 
 Negative or zero values are shown as unavailable for ratio-based comparisons where they would be misleading. The composite rank is a winsorized average of available relative scores, plus DCF and analyst-upside contributions; it is a screening signal, not investment advice.
 
+In a particular stock with a lower coverage (specifically below 7), it will take the average score of the industry the stock is registered as. For example:
+
+```bash
+        {
+      "pe": 1.855066,
+      "forward_pe": NaN,
+      "historic_pe": 1.8550660309213647,
+      "debt_to_equity": NaN,
+      "asset_turnover": null,
+      "free_cash_flow": NaN,
+      "revenue_growth": 0.304,
+      "earnings_growth": 0.469,
+      "return_on_equity": 0.17789,
+      "forward_ev_ebitda": null,
+      "dcf_bear": NaN,
+      "dcf_base": NaN,
+      "dcf_bull": NaN,
+      "dcf_upside": NaN,
+      "analyst_upside": NaN,
+      "symbol": "JPM-PC",
+      "name": "JPMorgan Chase & Co.",
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified",
+      "price": 25.01,
+      "analyst_target": NaN,
+      "score_pe": 7.3754214135777385,
+      "score_forward_pe": NaN,
+      "score_historic_pe": 7.375421260314379,
+      "score_debt_to_equity": NaN,
+      "score_asset_turnover": NaN,
+      "score_free_cash_flow": NaN,
+      "score_revenue_growth": 1.8095238095238093,
+      "score_earnings_growth": 1.375366568914956,
+      "score_return_on_equity": 1.5884453259913685,
+      "score_forward_ev_ebitda": NaN,
+      "score_dcf_upside": NaN,
+      "score_analyst_upside": NaN,
+      "composite_score": 2.554667140886027,
+      "coverage": 5
+    },
+```
+The coverage in this particular snippet is only 5 and there are many fundemental points with Nan, or None for the data points. in this particular case, it would take the average of each missing fundemental.
+
 ## Data notes
 
 - The stock universe comes from Nasdaq Trader's public `nasdaqlisted.txt` and `otherlisted.txt` directories, filtered to common equity-like listings. ETFs, funds, test issues and non-US symbol formats are excluded.
