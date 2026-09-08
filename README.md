@@ -31,6 +31,11 @@ market-rank top --limit all # Displays everything.
 # Inspect one company and its sector-relative scores.
 market-rank show MSFT
 
+# Show a correlation matrix of daily returns between stocks.
+market-rank correlate --symbols AAPL,MSFT,NVDA,GOOGL,AMZN
+market-rank correlate --watchlist --period 1y
+market-rank correlate --limit 15 # Top 15 from the current snapshot (default when no --symbols/--watchlist given).
+
 # Keep the process alive; refreshes once on each NYSE trading day at 09:40 ET.
 market-rank run
 
@@ -100,6 +105,22 @@ In a particular stock with a lower coverage (specifically below 7), it will take
     },
 ```
 The coverage in this particular snippet is only 5 and there are many fundemental points with Nan, or None for the data points. in this particular case, it would take the average of each missing fundemental.
+
+## Correlation matrix
+
+`market-rank correlate` computes the Pearson correlation between daily returns for a set of stocks and prints it as a matrix, to help spot when a watchlist or top-ranked set is more concentrated (highly correlated) than it looks from scores alone.
+
+```bash
+market-rank correlate --symbols AAPL,MSFT,NVDA,GOOGL,AMZN
+market-rank correlate --watchlist --period 1y
+market-rank correlate --limit 15
+```
+
+- Symbols are resolved in this order: explicit `--symbols`, then `--watchlist`, then the top N symbols (`--limit`, default 10) from the current snapshot.
+- `--period` sets the daily-price lookback window passed to yfinance (default `3y`; also accepts values like `6mo`, `1y`, `5y`).
+- Daily price history is pulled in a single batched request per run — this isn't cached the way fundamentals are, since correlation is sensitive to the lookback window and changes day to day.
+- Symbols with no usable price data for the requested period (e.g. recent IPOs shorter than `--period`) are dropped from the matrix and reported separately rather than causing an error.
+- Values range from 1.00 (identical daily movement — always the diagonal) to -1.00 (inverse movement); values near 0 indicate largely unrelated movement.
 
 ## Data notes
 
