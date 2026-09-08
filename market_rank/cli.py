@@ -7,10 +7,11 @@ from typing import Any
 import math
 
 from .config import APP_DIR, DEFAULT_OPEN_REFRESH_TIME, FUNDAMENTALS_FILE, FUNDAMENTALS_TTL_DAYS, SNAPSHOT_FILE, UNIVERSE_FILE
-from .metrics import METRICS, display_metrics, normalize_record, score_records
+from .metrics import METRICS, backfill_low_coverage, display_metrics, normalize_record, score_records
 from .market_cap import largest_us_equities
 from .storage import load, now_iso, save
 from .universe import download_us_symbols
+
 
 
 def _fresh(entry: dict[str, Any]) -> bool:
@@ -71,8 +72,9 @@ def update(args: argparse.Namespace) -> None:
             save(FUNDAMENTALS_FILE, cache)
             print(f"Processed {index}/{len(symbols)} symbols")
 
-
+    backfill_low_coverage(records)
     ranked = score_records(records)
+
     if getattr(args, "watchlist", False):
         universe_label = "your watchlist"
     elif args.market_cap:
@@ -105,10 +107,10 @@ def top(args: argparse.Namespace) -> None:
     limit = None if args.limit.lower() == "all" else int(args.limit)
 
     print(f"Snapshot: {snapshot.get('generated_at')} | {snapshot.get('universe', 'US equities')} | ranked {snapshot.get('ranked_count')} of {snapshot.get('universe_size')} symbols")
-    print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Score':>7} {'Coverage':>8}")
+    print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Industry':<20} {'Score':>7} {'Coverage':>8}")
 
     for rank, row in enumerate(records[:limit], start=1):
-        print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
+        print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {row['industry'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
 
 
 def show(args: argparse.Namespace) -> None:
@@ -188,7 +190,7 @@ def watchlist(args: argparse.Namespace) -> None:
         if not records:
             raise SystemExit("No snapshot yet. Run: python -m market_rank update")
 
-        print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Score':>7} {'Coverage':>8}")
+        print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Industry':<20} {'Score':>7} {'Coverage':>8}")
 
         missing = []
         rank = 0
@@ -198,7 +200,7 @@ def watchlist(args: argparse.Namespace) -> None:
                 missing.append(title)
                 continue
             rank += 1
-            print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
+            print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {row['industry'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
 
         if missing:
             print(f"\nNot in current snapshot (outside top 100 or not yet ranked): {', '.join(missing)}")
