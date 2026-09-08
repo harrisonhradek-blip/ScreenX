@@ -70,48 +70,27 @@ For every metric, the raw comparison is against the **median valid value in the 
 
 Negative or zero values are shown as unavailable for ratio-based comparisons where they would be misleading. The composite rank is a winsorized average of available relative scores, plus DCF and analyst-upside contributions; it is a screening signal, not investment advice.
 
-In a particular stock with a lower coverage (specifically below 7), it will take the average score of the industry the stock is registered as. For example:
+### Low-coverage handling
 
-```bash
-        {
-      "pe": 1.855066,
-      "forward_pe": NaN,
-      "historic_pe": 1.8550660309213647,
-      "debt_to_equity": NaN,
-      "asset_turnover": null,
-      "free_cash_flow": NaN,
-      "revenue_growth": 0.304,
-      "earnings_growth": 0.469,
-      "return_on_equity": 0.17789,
-      "forward_ev_ebitda": null,
-      "dcf_bear": NaN,
-      "dcf_base": NaN,
-      "dcf_bull": NaN,
-      "dcf_upside": NaN,
-      "analyst_upside": NaN,
-      "symbol": "JPM-PC",
-      "name": "JPMorgan Chase & Co.",
-      "sector": "Financial Services",
-      "industry": "Banks - Diversified",
-      "price": 25.01,
-      "analyst_target": NaN,
-      "score_pe": 7.3754214135777385,
-      "score_forward_pe": NaN,
-      "score_historic_pe": 7.375421260314379,
-      "score_debt_to_equity": NaN,
-      "score_asset_turnover": NaN,
-      "score_free_cash_flow": NaN,
-      "score_revenue_growth": 1.8095238095238093,
-      "score_earnings_growth": 1.375366568914956,
-      "score_return_on_equity": 1.5884453259913685,
-      "score_forward_ev_ebitda": NaN,
-      "score_dcf_upside": NaN,
-      "score_analyst_upside": NaN,
-      "composite_score": 2.554667140886027,
-      "coverage": 5
-    },
-```
-The coverage in this particular snippet is only 5 and there are many fundemental points with Nan, or None for the data points. in this particular case, it would take the average of each missing fundemental.
+Some companies have incomplete fundamental data. When a stock has fewer than 7 valid observations for a metric within its sector, ScreenX falls back to the corresponding industry-level average where available. Missing metrics are therefore handled without allowing sparse data to disproportionately affect the composite score.
+
+For example, a low-coverage stock might produce a snapshot like:
+
+| Metric           |   Raw Value | Relative Score |
+| ---------------- | ----------: | -------------: |
+| P/E              |        1.86 |           7.38 |
+| Historic P/E     |        1.86 |           7.38 |
+| Revenue growth   |       30.4% |           1.81 |
+| Earnings growth  |       46.9% |           1.38 |
+| Return on equity |       17.8% |           1.59 |
+| Forward P/E      | Unavailable |              — |
+| Debt-to-equity   | Unavailable |              — |
+| Free cash flow   | Unavailable |              — |
+| DCF upside       | Unavailable |              — |
+| Analyst upside   | Unavailable |              — |
+
+The `coverage` field records how many valid sector observations were available for the stock. Low coverage does not automatically exclude a company, but the resulting score should be interpreted with greater caution.
+
 
 ## Correlation matrix
 

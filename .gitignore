@@ -2,3 +2,4 @@
 .venv/
 /market_rank/watchlist.db/
 goals/
+.DS_Store/
