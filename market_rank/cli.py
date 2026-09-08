@@ -107,10 +107,12 @@ def top(args: argparse.Namespace) -> None:
     limit = None if args.limit.lower() == "all" else int(args.limit)
 
     print(f"Snapshot: {snapshot.get('generated_at')} | {snapshot.get('universe', 'US equities')} | ranked {snapshot.get('ranked_count')} of {snapshot.get('universe_size')} symbols")
-    print(f"{'#':>3}  {'Ticker':<7} {'Company':<28} {'Sector':<20} {'Industry':<20} {'Score':>7} {'Coverage':>8}")
+    print("-" * 115)
+    print(f"| {'#':>3} | {'Ticker':<7} | {'Company':<28} | {'Sector':<20} | {'Industry':<20} | {'Score':>7} | {'Coverage':>8} |")
 
     for rank, row in enumerate(records[:limit], start=1):
-        print(f"{rank:>3}  {row['symbol']:<7} {row['name'][:28]:<28} {row['sector'][:20]:<20} {row['industry'][:20]:<20} {_fmt(row.get('composite_score')):>7} {row.get('coverage', 0):>8}")
+        print(f"| {rank:>3} | {row['symbol']:<7} | {row['name'][:28]:<28} | {row['sector'][:20]:<20} | {row['industry'][:20]:<20} | {_fmt(row.get('composite_score')):>7} | {row.get('coverage', 0):>8} |")
+    print("-" * 115)
 
 
 def show(args: argparse.Namespace) -> None:
