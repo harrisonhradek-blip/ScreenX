@@ -15,6 +15,7 @@ import pandas as pd
 import yfinance as yf
 import pandas as pd
 import pandas_market_calendars as mcal
+from pathlib import Path
 
 
 
@@ -90,9 +91,8 @@ def update(args: argparse.Namespace) -> None:
     save(FUNDAMENTALS_FILE, cache)
     save(SNAPSHOT_FILE, snapshot)
 
-
-    print(f"Saved {len(snapshot['records'])} ranked companies to {SNAPSHOT_FILE}")
-
+    display_path = str(SNAPSHOT_FILE).replace(str(Path.home()), "~")
+    print(f"Saved {len(snapshot['records'])} ranked companies to {display_path}")
 
 def _fmt(value: Any, percent: bool = False) -> str:
     if value is None or (isinstance(value, float) and not math.isfinite(value)):

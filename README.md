@@ -2,6 +2,13 @@
 
 A small Python CLI that refreshes a US-listed equity ranking shortly after the US market opens, stores the result locally, and displays the top 100 companies with sector-relative valuation, financial-health, and growth metrics.
 
+## Demo
+
+![market-rank update demo](docs/media/demo.gif)
+![market-rank top demo](docs/media/demo-top.gif)
+
+*Recorded with [VHS](https://github.com/charmbracelet/vhs) by Charm.*
+
 ## Install
 
 ```bash
