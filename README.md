@@ -83,11 +83,11 @@ For example, a low-coverage stock might produce a snapshot like:
 | Revenue growth   |       30.4% |           1.81 |
 | Earnings growth  |       46.9% |           1.38 |
 | Return on equity |       17.8% |           1.59 |
-| Forward P/E      | Unavailable |              — |
-| Debt-to-equity   | Unavailable |              — |
-| Free cash flow   | Unavailable |              — |
-| DCF upside       | Unavailable |              — |
-| Analyst upside   | Unavailable |              — |
+| Forward P/E      | Unavailable |            N/A |
+| Debt-to-equity   | Unavailable |              N/A |
+| Free cash flow   | Unavailable |              N/A |
+| DCF upside       | Unavailable |              N/A |
+| Analyst upside   | Unavailable |              N/A |
 
 The `coverage` field records how many valid sector observations were available for the stock. Low coverage does not automatically exclude a company, but the resulting score should be interpreted with greater caution.
 
@@ -104,13 +104,13 @@ market-rank correlate --limit 15
 
 - Symbols are resolved in this order: explicit `--symbols`, then `--watchlist`, then the top N symbols (`--limit`, default 10) from the current snapshot.
 - `--period` sets the daily-price lookback window passed to yfinance (default `3y`; also accepts values like `6mo`, `1y`, `5y`).
-- Daily price history is pulled in a single batched request per run — this isn't cached the way fundamentals are, since correlation is sensitive to the lookback window and changes day to day.
+- Daily price history is pulled in a single batched request per run, this isn't cached the way fundamentals are, since correlation is sensitive to the lookback window and changes day to day.
 - Symbols with no usable price data for the requested period (e.g. recent IPOs shorter than `--period`) are dropped from the matrix and reported separately rather than causing an error.
-- Values range from 1.00 (identical daily movement — always the diagonal) to -1.00 (inverse movement); values near 0 indicate largely unrelated movement.
+- Values range from 1.00 (identical daily movement) to -1.00 (inverse movement); values near 0 indicate largely unrelated movement.
 
 ## Data notes
 
 - The stock universe comes from Nasdaq Trader's public `nasdaqlisted.txt` and `otherlisted.txt` directories, filtered to common equity-like listings. ETFs, funds, test issues and non-US symbol formats are excluded.
 - Fundamentals, analyst targets, earnings/revenue growth and daily prices are fetched through `yfinance`/Yahoo Finance. Coverage varies by company; missing metrics do not count against a company's composite.
 - DCF scenarios use a deliberately transparent five-year FCFE-style projection based on reported free cash flow, revenue/EPS growth forecasts, beta-derived discounting and a Monte Carlo terminal-growth/discount-rate simulation. They are estimates, not analyst models.
-- A snapshot always reflects whichever universe was last requested — the full listed universe, a market-cap-limited set, or (with `update --watchlist`) just your watchlist symbols. `market-rank top` and `market-rank watchlist --top` both read from this same snapshot, so scores are only ever comparable within the universe that generated the current snapshot, not across runs made with different `update` options.
+- A snapshot always reflects whichever universe was last requested N/A the full listed universe, a market-cap-limited set, or (with `update --watchlist`) just your watchlist symbols. `market-rank top` and `market-rank watchlist --top` both read from this same snapshot, so scores are only ever comparable within the universe that generated the current snapshot, not across runs made with different `update` options.
